@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eBay Japan Seller — 海外販売アシスタント</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --ink: #1a1410;
+    --ash: #3d3530;
+    --dust: #7a6e68;
+    --paper: #f7f3ee;
+    --warm-white: #fdfaf6;
+    --vermillion: #c0392b;
+    --vermillion-soft: #e8534a;
+    --gold: #b8860b;
+    --gold-light: #f0c830;
+    --border: #ddd5c8;
+    --step-bg: #f0ebe3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0;
+    display: flex;
+    align-items: stretch;
+  }
+  .header-accent {
+    width: 6px;
+    background: var(--vermillion);
+    flex-shrink: 0;
+  }
+  .header-inner {
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+  }
+  .logo-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+  }
+  .logo-en {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: #aaa;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .header-divider { width: 1px; height: 36px; background: #444; }
+  .header-sub {
+    font-size: 12px;
+    color: #aaa;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── Steps nav ── */
+  .steps-nav {
+    background: var(--warm-white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .step-btn {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 20px;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: var(--dust);
+    white-space: nowrap;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .step-btn.active {
+    color: var(--vermillion);
+    border-bottom-color: var(--vermillion);
+    font-weight: 500;
+  }
+  .step-btn:hover:not(.active) { color: var(--ash); }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--border);
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--dust);
+  }
+  .step-btn.active .step-num {
+    background: var(--vermillion);
+    color: white;
+  }
+  .step-btn.done .step-num { background: #4caf50; color: white; }
+
+  /* ── Main layout ── */
+  main { max-width: 820px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* ── Panel ── */
+  .panel {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+  }
+  .panel.active { display: block; }
+  .panel-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--step-bg);
+  }
+  .panel-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .panel-desc { font-size: 13px; color: var(--dust); }
+  .panel-body { padding: 24px; }
+
+  /* ── Upload area ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--paper);
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--vermillion); background: #fdf5f4; }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-text { font-size: 14px; color: var(--dust); }
+  .upload-hint { font-size: 12px; color: #bbb; margin-top: 6px; }
+
+  .preview-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .preview-img {
+    width: 90px; height: 90px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 18px; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ash);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+  }
+  label .required { color: var(--vermillion); margin-left: 2px; }
+  input[type=text], textarea, select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input[type=text]:focus, textarea:focus, select:focus { border-color: var(--vermillion); }
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 22px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--vermillion);
+    color: white;
+  }
+  .btn-primary:hover { background: #a93226; }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-secondary {
+    background: var(--paper);
+    color: var(--ash);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--step-bg); }
+  .btn-gold {
+    background: var(--gold);
+    color: white;
+  }
+  .btn-gold:hover { background: #9a7209; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; align-items: center; }
+
+  /* ── AI result card ── */
+  .result-card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--vermillion);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-top: 16px;
+  }
+  .result-label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--dust);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .result-en {
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--dust);
+    margin-top: 10px;
+    transition: all 0.15s;
+  }
+  .copy-btn:hover { background: var(--step-bg); color: var(--ash); }
+
+  /* ── Shipping table ── */
+  .ship-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 16px;
+  }
+  .ship-table th {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .ship-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .ship-table tr:nth-child(even) td { background: var(--step-bg); }
+  .recommend-badge {
+    display: inline-block;
+    background: var(--vermillion);
+    color: white;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── Checklist ── */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist input[type=checkbox] {
+    width: 18px; height: 18px;
+    accent-color: var(--vermillion);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .check-text { flex: 1; }
+  .check-sub { font-size: 12px; color: var(--dust); margin-top: 2px; }
+  .checklist li.checked .check-text { text-decoration: line-through; color: var(--dust); }
+
+  /* ── Progress indicator ── */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--vermillion);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Research tip ── */
+  .tip-box {
+    background: #fffbf0;
+    border: 1px solid #f0c830;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 13px;
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+  }
+  .tip-icon { font-size: 18px; flex-shrink: 0; }
+  .tip-text { color: var(--ash); line-height: 1.6; }
+
+  /* ── Loading ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dust);
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--vermillion);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none; }
+
+  /* ── Research panel ── */
+  .research-link {
+    display: block;
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-top: 10px;
+    font-size: 14px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .research-link:hover { background: var(--ash); }
+  .research-link-label { font-size: 11px; color: #888; margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  .price-inputs { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .price-inputs input { width: 120px; }
+  .price-calc {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .price-row { display: flex; justify-content: space-between; padding: 5px 0; }
+  .price-row.total {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+    padding-top: 10px;
+    font-weight: 500;
+    color: var(--vermillion);
+    font-size: 15px;
+  }
+  .price-note { color: var(--dust); }
+  .price-profit { color: #2e7d32; }
+  .price-loss { color: var(--vermillion); }
+
+  /* Responsive */
+  @media (max-width: 500px) {
+    .header-inner { padding: 14px 16px; }
+    main { padding: 20px 12px 60px; }
+    .panel-body { padding: 16px; }
+    .steps-nav { padding: 0 8px; }
+    .step-btn { padding: 12px 12px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-accent"></div>
+  <div class="header-inner">
+    <div>
+      <div class="logo-jp">海外販売アシスタント</div>
+      <div class="logo-en">eBay Japan Seller</div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-sub">写真を撮るだけで英語出品文を自動作成</div>
+  </div>
+</header>
+
+<nav class="steps-nav">
+  <button class="step-btn active" onclick="showPanel(0)">
+    <span class="step-num" id="sn0">1</span> 商品撮影・入力
+  </button>
+  <button class="step-btn" onclick="showPanel(1)">
+    <span class="step-num" id="sn1">2</span> 相場リサーチ
+  </button>
+  <button class="step-btn" onclick="showPanel(2)">
+    <span class="step-num" id="sn2">3</span> 英語文章を作成
+  </button>
+  <button class="step-btn" onclick="showPanel(3)">
+    <span class="step-num" id="sn3">4</span> 発送・価格計算
+  </button>
+  <button class="step-btn" onclick="showPanel(4)">
+    <span class="step-num" id="sn4">5</span> 出品チェック
+  </button>
+</nav>
+
+<main>
+
+<!-- ── STEP 1: 商品入力 ── -->
+<div class="panel active" id="panel0">
+  <div class="panel-header">
+    <div class="panel-title">📦 商品情報を入力する</div>
+    <div class="panel-desc">写真をアップロードして、商品の基本情報を日本語で入力してください</div>
+  </div>
+  <div class="panel-body">
+
+    <div class="field">
+      <label>商品写真をアップロード（複数可）</label>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotos(event)">
+        <div class="upload-icon">📷</div>
+        <div class="upload-text">写真をここにドロップ、またはタップして選択</div>
+        <div class="upload-hint">JPG / PNG 対応 ・ 最大10枚</div>
+      </div>
+      <div class="preview-grid" id="previewGrid"></div>
+    </div>
+
+    <div class="field">
+      <label>商品名（日本語でOK）<span class="required">*</span></label>
+      <input type="text" id="itemName" placeholder="例：セイコー 5 自動巻き 腕時計 シルバー" oninput="saveData()">
+    </div>
+
+    <div class="field">
+      <label>カテゴリ</label>
+      <select id="itemCategory" onchange="saveData()">
+        <option value="">選択してください</option>
+        <option value="watch">時計（腕時計・懐中時計）</option>
+        <option value="anime">フィギュア・アニメグッズ</option>
+        <option value="game">ゲーム・レトロゲーム</option>
+        <option value="manga">漫画・本</option>
+        <option value="kimono">着物・和小物</option>
+        <option value="pottery">陶器・工芸品</option>
+        <option value="coin">コイン・切手</option>
+        <option value="camera">カメラ・レンズ</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>状態</label>
+      <select id="itemCondition" onchange="saveData()">
+        <option value="new">新品・未使用</option>
+        <option value="likenew" selected>ほぼ新品（使用感ごくわずか）</option>
+        <option value="verygood">良品（軽微な使用感あり）</option>
+        <option value="good">普通（使用感あり・動作OK）</option>
+        <option value="fair">傷・汚れあり（動作OK）</option>
+        <option value="parts">ジャンク・部品取り</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>特徴・詳細（日本語で自由に）</label>
+      <textarea id="itemDetail" rows="4" placeholder="例：1970年代製。自動巻き。ケース径37mm。文字盤に細かいキズあり。ベルトは新品に交換済み。動作確認済み。" oninput="saveData()"></textarea>
+    </div>
+
+    <div class="field">
+      <label>仕入れ価格（円）</label>
+      <input type="text" id="costPrice" placeholder="例：2000" oninput="saveData()">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="showPanel(1)">次へ → 相場リサーチ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 2: リサーチ ── -->
+<div class="panel" id="panel1">
+  <div class="panel-header">
+    <div class="panel-title">🔍 eBay相場をリサーチする</div>
+    <div class="panel-desc">「過去に実際に売れた価格」を調べるのが鉄則です</div>
+  </div>
+  <div class="panel-body">
+
+    <div class="tip-box">
+      <span class="tip-icon">💡</span>
+      <div class="tip-text">
+        <strong>相場リサーチの鉄則：</strong><br>
+        eBayの「Sold Items（売れた商品）」フィルターを使うこと。<br>
+        出品中の価格ではなく、<u>実際に売れた価格</u>を見るのがポイントです。
+      </div>
+    </div>
+
+    <div id="researchKeywordBox" style="margin-top:18px;">
+      <div class="field">
+        <label>AI が生成したリサーチ用キーワード（英語）</label>
+        <input type="text" id="researchKeyword" placeholder="まずSTEP1で商品名を入力してください">
+      </div>
+      <button class="btn btn-secondary" onclick="generateKeyword()" style="margin-bottom:12px;">
+        🤖 AIにキーワードを作ってもらう
+      </button>
+      <div id="kwLoading" class="loading hidden"><div class="spinner"></div>AIがキーワードを考えています…</div>
+    </div>
+
+    <div style="margin-top:8px;">
+      <a id="ebaySearchLink" href="#" target="_blank" class="research-link" onclick="openEbay(event)">
+        <div>
+          <div>eBayで「売れた商品」を検索する</div>
+          <div class="research-link-label">SOLD ITEMS FILTER → 自動で開きます</div>
+        </div>
+        <span>↗</span>
+      </a>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <div class="field">
+        <label>調べた相場（USD）</label>
+        <div class="price-inputs">
+          <input type="text" id="priceMin" placeholder="最安値 例: 25">
+          <span style="color:var(--dust)">〜</span>
+          <input type="text" id="priceMax" placeholder="最高値 例: 85">
+          <span style="color:var(--dust); font-size:13px;">USD</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>狙う販売価格（USD）</label>
+        <input type="text" id="targetPrice" placeholder="例: 45" style="max-width:180px;" oninput="calcProfit()">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showPanel(0)">← 戻る</button>
+      <button class="btn btn-primary" onclick="showPanel(2)">次へ → 英語文章を作成</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 3: 英語生成 ── -->
+<div class="panel" id="panel2">
+  <div class="panel-header">
+    <div class="panel-title">✍️ 英語の出品文を自動作成</div>
+    <div class="panel-desc">入力した情報をもとに、AIが英語タイトルと商品説明文を生成します</div>
+  </div>
+  <div class="panel-body">
+
+    <div class="tip-box">
+      <span class="tip-icon">📝</span>
+      <div class="tip-text">
+        eBayのタイトルは<strong>80文字以内</strong>が上限です。<br>
+        重要なキーワードを前に入れるほど検索に引っかかりやすくなります。
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:18px; margin-bottom:0;">
+      <button class="btn btn-primary" onclick="generateEnglish()" id="genBtn">
+        🤖 AIで英語を生成する
+      </button>
+    </div>
+    <div id="genLoading" class="loading hidden" style="margin-top:14px;"><div class="spinner"></div>英語文章を作成しています…</div>
+
+    <div id="genResult" class="hidden">
+      <div class="result-card" style="margin-top:20px;">
+        <div class="result-label">Title（タイトル）</div>
+        <div class="result-en" id="genTitle"></div>
+        <button class="copy-btn" onclick="copyText('genTitle')">📋 コピー</button>
+      </div>
+
+      <div class="result-card">
+        <div class="result-label">Description（商品説明文）</div>
+        <div class="result-en" id="genDesc"></div>
+        <button class="copy-btn" onclick="copyText('genDesc')">📋 コピー</button>
+      </div>
+
+      <div class="result-card">
+        <div class="result-label">Condition Notes（状態説明）</div>
+        <div class="result-en" id="genCondition"></div>
+        <button class="copy-btn" onclick="copyText('genCondition')">📋 コピー</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showPanel(1)">← 戻る</button>
+      <button class="btn btn-primary" onclick="showPanel(3)">次へ → 発送・価格計算</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 4: 発送・価格 ── -->
+<div class="panel" id="panel3">
+  <div class="panel-header">
+    <div class="panel-title">📮 発送方法と利益を計算</div>
+    <div class="panel-desc">重量と販売価格から、最適な発送方法と手取り利益を確認します</div>
+  </div>
+  <div class="panel-body">
+
+    <div class="field">
+      <label>梱包後の重量（g）</label>
+      <input type="text" id="itemWeight" placeholder="例：350" oninput="calcAll()" style="max-width:160px;">
+    </div>
+    <div class="field">
+      <label>送り先（大陸）</label>
+      <select id="destRegion" onchange="calcAll()">
+        <option value="us">アメリカ・カナダ</option>
+        <option value="eu">ヨーロッパ</option>
+        <option value="au">オーストラリア</option>
+        <option value="asia">東南アジア</option>
+      </select>
+    </div>
+
+    <table class="ship-table" id="shippingTable">
+      <thead>
+        <tr>
+          <th>発送方法</th>
+          <th>目安送料</th>
+          <th>日数</th>
+          <th>追跡</th>
+          <th>特徴</th>
+        </tr>
+      </thead>
+      <tbody id="shipBody"></tbody>
+    </table>
+
+    <div style="margin-top: 24px;">
+      <div style="font-size:14px; font-weight:500; margin-bottom:10px; color:var(--ash);">💴 利益シミュレーション</div>
+      <div class="price-calc" id="profitCalc">
+        <div class="price-row"><span>販売価格</span><span id="pc-sale">— USD</span></div>
+        <div class="price-row price-note"><span>eBay手数料（約13.25%）</span><span id="pc-fee">—</span></div>
+        <div class="price-row price-note"><span>PayPal / Payoneer手数料（約3%）</span><span id="pc-pay">—</span></div>
+        <div class="price-row price-note"><span>国際送料（目安）</span><span id="pc-ship">—</span></div>
+        <div class="price-row price-note"><span>仕入れ価格</span><span id="pc-cost">—</span></div>
+        <div class="price-row total"><span>手取り利益（概算）</span><span id="pc-profit">—</span></div>
+      </div>
+      <div style="font-size:11px; color:var(--dust); margin-top:8px;">※ 為替レートは参考値（1USD≈155円）。実際の手数料はeBay設定によって異なります。</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="showPanel(2)">← 戻る</button>
+      <button class="btn btn-primary" onclick="showPanel(4)">次へ → 出品チェック</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── STEP 5: チェックリスト ── -->
+<div class="panel" id="panel4">
+  <div class="panel-header">
+    <div class="panel-title">✅ 出品前チェックリスト</div>
+    <div class="panel-desc">全項目を確認してから出品しましょう。トラブルを未然に防げます</div>
+  </div>
+  <div class="panel-body">
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="checkProgress" style="width:0%"></div>
+    </div>
+    <div id="checkCount" style="font-size:12px; color:var(--dust); margin-bottom:16px; font-family:'DM Mono',monospace;">0 / 12 完了</div>
+
+    <ul class="checklist" id="checklist">
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          写真は最低4枚以上あるか
+          <div class="check-sub">全体・細部・傷やシリアル番号など。白背景推奨</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          タイトルに重要キーワードが入っているか
+          <div class="check-sub">ブランド名・型番・素材・色など。80文字以内</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          商品説明文が英語で書かれているか
+          <div class="check-sub">STEP3で生成した文章を貼り付けましょう</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          状態（Condition）を正しく設定したか
+          <div class="check-sub">Used / Like New / New etc. 過小評価禁止</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          「Sold Items」で相場を確認したか
+          <div class="check-sub">高すぎると売れない。安すぎると損をする</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          発送方法と送料を設定したか
+          <div class="check-sub">Calculated Shipping か Flat Rate を選択</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          発送元（Ship from）を日本に設定したか
+          <div class="check-sub">Japan と正確に入力。これを忘れると信頼が下がる</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          返品ポリシーを設定したか
+          <div class="check-sub">最初は「30 days returns」が信頼度アップに有効</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          輸出禁止品でないか確認したか
+          <div class="check-sub">刀剣・医薬品・コピー商品・CITES対象品は厳禁</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          Payoneer / 銀行口座の受け取り設定は完了しているか
+          <div class="check-sub">Managed Payments への登録が必要</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          梱包材は準備できているか
+          <div class="check-sub">エアパッキン・段ボール・テープ。壊れ物は二重梱包</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" onchange="updateCheck(this)">
+        <div class="check-text">
+          インボイス（customs declaration）の書き方を確認したか
+          <div class="check-sub">商品名を英語で。価格は正直に。FALSEは違法です</div>
+        </div>
+      </li>
+    </ul>
+
+    <div id="allDoneMsg" class="tip-box hidden" style="margin-top:20px; border-color: #4caf50; background:#f1f8f1;">
+      <span class="tip-icon">🎉</span>
+      <div class="tip-text">
+        <strong>全項目クリア！出品する準備ができました。</strong><br>
+        eBayにログインして出品を完了させましょう。初めての出品はドキドキしますが、大丈夫。一つずつ売れるごとに経験が積み上がります！
+      </div>
+    </div>
+
+    <div class="btn-row" style="margin-top:20px;">
+      <button class="btn btn-secondary" onclick="showPanel(3)">← 戻る</button>
+      <a href="https://www.ebay.com/sell" target="_blank" class="btn btn-gold">eBayで出品する ↗</a>
+      <button class="btn btn-secondary" onclick="resetAll()">🔄 最初からやり直す</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ── State ──
+let state = {
+  photos: [],
+  itemName: '',
+  category: '',
+  condition: '',
+  detail: '',
+  costPrice: '',
+  keyword: '',
+  priceMin: '',
+  priceMax: '',
+  targetPrice: '',
+  weight: '',
+  region: 'us',
+};
+
+// ── Panel nav ──
+function showPanel(idx) {
+  document.querySelectorAll('.panel').forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.step-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+  if (idx === 3) calcAll();
+}
+
+// ── Photos ──
+function handlePhotos(e) {
+  const files = Array.from(e.target.files).slice(0, 10);
+  state.photos = files;
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  files.forEach(f => {
+    const img = document.createElement('img');
+    img.className = 'preview-img';
+    img.src = URL.createObjectURL(f);
+    grid.appendChild(img);
+  });
+}
+
+function saveData() {
+  state.itemName = document.getElementById('itemName').value;
+  state.category = document.getElementById('itemCategory').value;
+  state.condition = document.getElementById('itemCondition').value;
+  state.detail = document.getElementById('itemDetail').value;
+  state.costPrice = document.getElementById('costPrice').value;
+}
+
+// ── Keyword gen ──
+async function generateKeyword() {
+  saveData();
+  if (!state.itemName) { alert('商品名を入力してください'); return; }
+  document.getElementById('kwLoading').classList.remove('hidden');
+
+  const condMap = {
+    new:'Brand new, never used',
+    likenew:'Like new, barely used',
+    verygood:'Very good condition, light signs of use',
+    good:'Good condition, normal signs of use',
+    fair:'Fair condition, visible wear/scratches',
+    parts:'For parts or not working'
+  };
+  const cond = condMap[state.condition] || state.condition;
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: 'You are an eBay SEO expert specializing in Japanese vintage goods. Respond ONLY in JSON, no markdown, no preamble.',
+        messages: [{
+          role: 'user',
+          content: `Generate an eBay search keyword (English, 3-6 words) for this Japanese item.
+Item: ${state.itemName}
+Category: ${state.category}
+Condition: ${cond}
+Details: ${state.detail}
+
+Respond with ONLY this JSON: {"keyword": "...", "reason_jp": "このキーワードにした理由（日本語）"}`
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content[0].text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    document.getElementById('researchKeyword').value = parsed.keyword;
+    state.keyword = parsed.keyword;
+
+    // Show reason
+    const tip = document.createElement('div');
+    tip.className = 'tip-box';
+    tip.style.marginTop = '10px';
+    tip.innerHTML = `<span class="tip-icon">🤖</span><div class="tip-text">${parsed.reason_jp}</div>`;
+    const box = document.getElementById('researchKeywordBox');
+    const existing = box.querySelector('.tip-box');
+    if (existing) existing.remove();
+    box.appendChild(tip);
+  } catch(e) {
+    alert('エラーが発生しました。もう一度試してください。');
+    console.error(e);
+  }
+  document.getElementById('kwLoading').classList.add('hidden');
+}
+
+function openEbay(e) {
+  e.preventDefault();
+  const kw = document.getElementById('researchKeyword').value || state.itemName;
+  if (!kw) { alert('キーワードを入力してください'); return; }
+  const url = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(kw)}&LH_Sold=1&LH_Complete=1&_sop=13`;
+  window.open(url, '_blank');
+}
+
+// ── English gen ──
+async function generateEnglish() {
+  saveData();
+  if (!state.itemName) { alert('STEP1で商品名を入力してください'); return; }
+
+  document.getElementById('genLoading').classList.remove('hidden');
+  document.getElementById('genResult').classList.add('hidden');
+  document.getElementById('genBtn').disabled = true;
+
+  const condMap = {
+    new:'Brand new, never used',
+    likenew:'Like new, barely used',
+    verygood:'Very good condition, light signs of use',
+    good:'Good condition, normal wear',
+    fair:'Fair condition, visible wear and scratches',
+    parts:'For parts or not working'
+  };
+  const cond = condMap[state.condition] || state.condition;
+  const price = document.getElementById('targetPrice').value || '';
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: 'You are an expert eBay seller specializing in authentic Japanese items. Write compelling, accurate English listing content. Respond ONLY in JSON, no markdown.',
+        messages: [{
+          role: 'user',
+          content: `Create eBay listing content for this Japanese item.
+
+Item name (JP): ${state.itemName}
+Category: ${state.category}
+Condition: ${cond}
+Details (JP): ${state.detail || 'No additional details provided.'}
+${price ? `Target price: $${price} USD` : ''}
+
+Return ONLY this JSON (no markdown, no backticks):
+{
+  "title": "eBay title under 80 chars, keyword-optimized",
+  "description": "Full HTML-free description, 5-8 sentences. Mention Japanese authenticity, condition details, shipping from Japan. End with 'Please feel free to ask any questions!'",
+  "condition_note": "2-3 sentence honest condition description for eBay's condition field"
+}`
+        }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content[0].text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+
+    document.getElementById('genTitle').textContent = parsed.title;
+    document.getElementById('genDesc').textContent = parsed.description;
+    document.getElementById('genCondition').textContent = parsed.condition_note;
+    document.getElementById('genResult').classList.remove('hidden');
+  } catch(e) {
+    alert('エラーが発生しました。もう一度試してください。');
+    console.error(e);
+  }
+  document.getElementById('genLoading').classList.add('hidden');
+  document.getElementById('genBtn').disabled = false;
+}
+
+function copyText(id) {
+  const txt = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ コピーしました';
+    setTimeout(() => btn.textContent = '📋 コピー', 2000);
+  });
+}
+
+// ── Shipping ──
+const shippingData = {
+  us: [
+    { name: 'EMS（エクスプレス）', days: '5〜7日', track: '✅', note: '最速・保険付き', rec: true, ratePerG: 0.0045, base: 1400 },
+    { name: '国際eパケット', days: '10〜18日', track: '✅', note: 'バランス良好', rec: false, ratePerG: 0.003, base: 900 },
+    { name: '航空小包', days: '7〜14日', track: '✅', note: '重いものに', rec: false, ratePerG: 0.0035, base: 1100 },
+    { name: 'SAL便', days: '2〜6週', track: '⚠️', note: '最安だが遅い', rec: false, ratePerG: 0.002, base: 700 },
+  ],
+  eu: [
+    { name: 'EMS（エクスプレス）', days: '5〜7日', track: '✅', note: '最速・保険付き', rec: true, ratePerG: 0.005, base: 1600 },
+    { name: '国際eパケット', days: '14〜21日', track: '✅', note: 'コスパ良', rec: false, ratePerG: 0.0032, base: 950 },
+    { name: 'SAL便', days: '3〜7週', track: '⚠️', note: '最安', rec: false, ratePerG: 0.0022, base: 750 },
+  ],
+  au: [
+    { name: 'EMS（エクスプレス）', days: '4〜6日', track: '✅', note: '近い・速い', rec: true, ratePerG: 0.004, base: 1300 },
+    { name: '国際eパケット', days: '10〜16日', track: '✅', note: 'おすすめ', rec: false, ratePerG: 0.0028, base: 850 },
+  ],
+  asia: [
+    { name: 'EMS（エクスプレス）', days: '3〜5日', track: '✅', note: '最速', rec: false, ratePerG: 0.003, base: 1000 },
+    { name: '国際eパケット', days: '7〜14日', track: '✅', note: 'おすすめ', rec: true, ratePerG: 0.0022, base: 700 },
+  ]
+};
+
+function calcAll() {
+  const weight = parseInt(document.getElementById('itemWeight').value) || 300;
+  const region = document.getElementById('destRegion').value;
+  const methods = shippingData[region] || shippingData['us'];
+  const tbody = document.getElementById('shipBody');
+  tbody.innerHTML = '';
+  let recShip = 0;
+  methods.forEach(m => {
+    const cost = Math.round(m.base + m.ratePerG * weight);
+    if (m.rec) recShip = cost;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.name}${m.rec ? '<span class="recommend-badge">推奨</span>' : ''}</td>
+      <td>¥${cost.toLocaleString()}</td>
+      <td>${m.days}</td>
+      <td>${m.track}</td>
+      <td style="font-size:12px;color:var(--dust)">${m.note}</td>`;
+    tbody.appendChild(tr);
+  });
+  calcProfit(recShip);
+}
+
+function calcProfit(shipCost) {
+  const sale = parseFloat(document.getElementById('targetPrice')?.value) || 0;
+  const cost = parseFloat(document.getElementById('costPrice')?.value) || 0;
+  const rate = 155;
+  const salJPY = sale * rate;
+  const fee = salJPY * 0.1325;
+  const payFee = salJPY * 0.03;
+  const ship = shipCost || parseInt(document.getElementById('itemWeight')?.value) * 0.003 + 900 || 1200;
+  const profit = salJPY - fee - payFee - ship - cost;
+
+  document.getElementById('pc-sale').textContent = sale ? `$${sale} (¥${Math.round(salJPY).toLocaleString()})` : '—';
+  document.getElementById('pc-fee').textContent = sale ? `-¥${Math.round(fee).toLocaleString()}` : '—';
+  document.getElementById('pc-pay').textContent = sale ? `-¥${Math.round(payFee).toLocaleString()}` : '—';
+  document.getElementById('pc-ship').textContent = ship ? `-¥${Math.round(ship).toLocaleString()}` : '—';
+  document.getElementById('pc-cost').textContent = cost ? `-¥${Math.round(cost).toLocaleString()}` : '—';
+
+  const profEl = document.getElementById('pc-profit');
+  if (sale) {
+    profEl.textContent = `¥${Math.round(profit).toLocaleString()}`;
+    profEl.className = profit > 0 ? 'price-profit' : 'price-loss';
+  } else {
+    profEl.textContent = '販売価格を入力してください';
+    profEl.className = '';
+  }
+}
+
+// ── Checklist ──
+function updateCheck(cb) {
+  const li = cb.closest('li');
+  li.classList.toggle('checked', cb.checked);
+  const items = document.querySelectorAll('#checklist input[type=checkbox]');
+  const done = Array.from(items).filter(i => i.checked).length;
+  const total = items.length;
+  document.getElementById('checkProgress').style.width = `${(done/total)*100}%`;
+  document.getElementById('checkCount').textContent = `${done} / ${total} 完了`;
+  document.getElementById('allDoneMsg').classList.toggle('hidden', done < total);
+}
+
+// ── Reset ──
+function resetAll() {
+  if (!confirm('入力内容をすべてリセットしますか？')) return;
+  document.getElementById('itemName').value = '';
+  document.getElementById('itemDetail').value = '';
+  document.getElementById('costPrice').value = '';
+  document.getElementById('previewGrid').innerHTML = '';
+  document.getElementById('genResult').classList.add('hidden');
+  document.querySelectorAll('#checklist input[type=checkbox]').forEach(cb => {
+    cb.checked = false;
+    cb.closest('li').classList.remove('checked');
+  });
+  updateCheck({closest: () => ({classList: {toggle: ()=>{}}})});
+  showPanel(0);
+}
+
+// Init
+calcAll();
+</script>
+</body>
+</html>
