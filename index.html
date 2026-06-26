@@ -563,19 +563,48 @@
     </div>
 
     <div style="margin-top: 20px;">
+
+      <!-- レート設定 -->
       <div class="field">
-        <label>調べた相場（USD）</label>
-        <div class="price-inputs">
-          <input type="text" id="priceMin" placeholder="最安値 例: 25">
-          <span style="color:var(--dust)">〜</span>
-          <input type="text" id="priceMax" placeholder="最高値 例: 85">
-          <span style="color:var(--dust); font-size:13px;">USD</span>
+        <label>為替レート（1 USD = 円）</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="text" id="fxRate" value="155" style="max-width:100px;" oninput="onRateChange()">
+          <span style="font-size:13px; color:var(--dust);">円 / USD</span>
+          <button class="copy-btn" onclick="fetchRate()" style="margin-top:0;">🔄 レートを自動取得</button>
         </div>
+        <div id="rateInfo" style="font-size:12px; color:var(--dust); margin-top:4px;"></div>
       </div>
+
+      <!-- 通貨切替 -->
+      <div style="display:flex; gap:8px; margin-bottom:12px;">
+        <button class="btn btn-secondary" id="togUSD" onclick="setCurrency('USD')" style="padding:6px 14px; font-size:13px; background:var(--ink); color:white; border-color:var(--ink);">USD $</button>
+        <button class="btn btn-secondary" id="togJPY" onclick="setCurrency('JPY')" style="padding:6px 14px; font-size:13px;">JPY ¥</button>
+        <span style="font-size:12px; color:var(--dust); align-self:center;" id="currencyNote">eBayに入力する通貨（USD）で入力中</span>
+      </div>
+
       <div class="field">
-        <label>狙う販売価格（USD）</label>
-        <input type="text" id="targetPrice" placeholder="例: 45" style="max-width:180px;" oninput="calcProfit()">
+        <label>調べた相場</label>
+        <div class="price-inputs">
+          <span id="symMin" style="color:var(--dust); font-size:15px;">$</span>
+          <input type="text" id="priceMin" placeholder="最安値">
+          <span style="color:var(--dust)">〜</span>
+          <span id="symMax" style="color:var(--dust); font-size:15px;">$</span>
+          <input type="text" id="priceMax" placeholder="最高値">
+          <span style="color:var(--dust); font-size:13px;" id="unitLabel">USD</span>
+        </div>
+        <div id="rangeConverted" style="font-size:12px; color:var(--dust); margin-top:6px;"></div>
       </div>
+
+      <div class="field">
+        <label>狙う販売価格</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="symTarget" style="color:var(--dust); font-size:15px;">$</span>
+          <input type="text" id="targetPrice" placeholder="例: 45" style="max-width:160px;" oninput="onTargetInput()">
+          <span style="font-size:13px; color:var(--dust);" id="unitLabelTarget">USD</span>
+        </div>
+        <div id="targetConverted" style="font-size:12px; color:var(--vermillion); margin-top:6px; font-weight:500;"></div>
+      </div>
+
     </div>
 
     <div class="btn-row">
@@ -680,7 +709,7 @@
         <div class="price-row price-note"><span>仕入れ価格</span><span id="pc-cost">—</span></div>
         <div class="price-row total"><span>手取り利益（概算）</span><span id="pc-profit">—</span></div>
       </div>
-      <div style="font-size:11px; color:var(--dust); margin-top:8px;">※ 為替レートは参考値（1USD≈155円）。実際の手数料はeBay設定によって異なります。</div>
+      <div style="font-size:11px; color:var(--dust); margin-top:8px;">※ 為替レートはSTEP2で設定した値を使用。実際の手数料はeBay設定によって異なります。</div>
     </div>
 
     <div class="btn-row">
@@ -1041,24 +1070,114 @@ function calcAll() {
   calcProfit(recShip);
 }
 
+// ── Currency ──
+let currentCurrency = 'USD';
+
+function getRate() {
+  return parseFloat(document.getElementById('fxRate')?.value) || 155;
+}
+
+function setCurrency(cur) {
+  currentCurrency = cur;
+  const isJPY = cur === 'JPY';
+  const sym = isJPY ? '¥' : '$';
+  const unit = isJPY ? 'JPY' : 'USD';
+
+  ['symMin','symMax','symTarget'].forEach(id => document.getElementById(id).textContent = sym);
+  ['unitLabel','unitLabelTarget'].forEach(id => document.getElementById(id).textContent = unit);
+
+  document.getElementById('togUSD').style.background = isJPY ? '' : 'var(--ink)';
+  document.getElementById('togUSD').style.color = isJPY ? '' : 'white';
+  document.getElementById('togUSD').style.borderColor = isJPY ? '' : 'var(--ink)';
+  document.getElementById('togJPY').style.background = isJPY ? 'var(--ink)' : '';
+  document.getElementById('togJPY').style.color = isJPY ? 'white' : '';
+  document.getElementById('togJPY').style.borderColor = isJPY ? 'var(--ink)' : '';
+  document.getElementById('currencyNote').textContent = isJPY ? '円で入力 → USDに自動換算します' : 'eBayに入力する通貨（USD）で入力中';
+
+  // Clear converted labels if switching
+  document.getElementById('rangeConverted').textContent = '';
+  document.getElementById('targetConverted').textContent = '';
+  onTargetInput();
+}
+
+function onRateChange() {
+  onTargetInput();
+  updateRangeConverted();
+}
+
+function updateRangeConverted() {
+  const rate = getRate();
+  const min = parseFloat(document.getElementById('priceMin').value);
+  const max = parseFloat(document.getElementById('priceMax').value);
+  const el = document.getElementById('rangeConverted');
+  if (!min && !max) { el.textContent = ''; return; }
+  if (currentCurrency === 'JPY') {
+    const minUSD = min ? `$${(min/rate).toFixed(1)}` : '';
+    const maxUSD = max ? `$${(max/rate).toFixed(1)}` : '';
+    el.textContent = `→ USD換算: ${minUSD}${min&&max?' 〜 ':''}${maxUSD}`;
+  } else {
+    const minJPY = min ? `¥${Math.round(min*rate).toLocaleString()}` : '';
+    const maxJPY = max ? `¥${Math.round(max*rate).toLocaleString()}` : '';
+    el.textContent = `→ 円換算: ${minJPY}${min&&max?' 〜 ':''}${maxJPY}`;
+  }
+}
+
+function onTargetInput() {
+  updateRangeConverted();
+  const rate = getRate();
+  const val = parseFloat(document.getElementById('targetPrice').value);
+  const el = document.getElementById('targetConverted');
+  if (!val) { el.textContent = ''; calcProfit(); return; }
+  if (currentCurrency === 'JPY') {
+    el.textContent = `→ eBay出品価格: $${(val/rate).toFixed(2)} USD`;
+  } else {
+    el.textContent = `→ 円換算: ¥${Math.round(val*rate).toLocaleString()}`;
+  }
+  calcProfit();
+}
+
+async function fetchRate() {
+  const btn = event.target;
+  btn.textContent = '取得中…';
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    const rate = data.rates?.JPY;
+    if (rate) {
+      document.getElementById('fxRate').value = Math.round(rate);
+      document.getElementById('rateInfo').textContent = `✅ 取得成功（更新: ${data.time_last_update_utc?.slice(0,16) || '最新'}）`;
+      onRateChange();
+    }
+  } catch(e) {
+    document.getElementById('rateInfo').textContent = '取得失敗。手動で入力してください。';
+  }
+  btn.textContent = '🔄 レートを自動取得';
+}
+
+function getTargetUSD() {
+  const val = parseFloat(document.getElementById('targetPrice')?.value) || 0;
+  const rate = getRate();
+  return currentCurrency === 'JPY' ? val / rate : val;
+}
+
 function calcProfit(shipCost) {
-  const sale = parseFloat(document.getElementById('targetPrice')?.value) || 0;
+  const saleUSD = getTargetUSD();
   const cost = parseFloat(document.getElementById('costPrice')?.value) || 0;
-  const rate = 155;
-  const salJPY = sale * rate;
+  const rate = getRate();
+  const salJPY = saleUSD * rate;
   const fee = salJPY * 0.1325;
   const payFee = salJPY * 0.03;
   const ship = shipCost || parseInt(document.getElementById('itemWeight')?.value) * 0.003 + 900 || 1200;
   const profit = salJPY - fee - payFee - ship - cost;
 
-  document.getElementById('pc-sale').textContent = sale ? `$${sale} (¥${Math.round(salJPY).toLocaleString()})` : '—';
-  document.getElementById('pc-fee').textContent = sale ? `-¥${Math.round(fee).toLocaleString()}` : '—';
-  document.getElementById('pc-pay').textContent = sale ? `-¥${Math.round(payFee).toLocaleString()}` : '—';
+  document.getElementById('pc-sale').textContent = saleUSD ? `$${saleUSD.toFixed(2)} (¥${Math.round(salJPY).toLocaleString()})` : '—';
+  document.getElementById('pc-fee').textContent = saleUSD ? `-¥${Math.round(fee).toLocaleString()}` : '—';
+  document.getElementById('pc-pay').textContent = saleUSD ? `-¥${Math.round(payFee).toLocaleString()}` : '—';
   document.getElementById('pc-ship').textContent = ship ? `-¥${Math.round(ship).toLocaleString()}` : '—';
   document.getElementById('pc-cost').textContent = cost ? `-¥${Math.round(cost).toLocaleString()}` : '—';
 
   const profEl = document.getElementById('pc-profit');
-  if (sale) {
+  if (saleUSD) {
     profEl.textContent = `¥${Math.round(profit).toLocaleString()}`;
     profEl.className = profit > 0 ? 'price-profit' : 'price-loss';
   } else {
